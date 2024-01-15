@@ -1,0 +1,97 @@
+---
+title: "Lab 1 Practice"
+author: "Chelsea Sanford"
+format: 
+    html:
+      code-fold: true
+      toc: true
+execute:
+  echo: true
+  message: false
+  warning: false
+editor: visual
+---
+
+```{r}
+library(tidyverse)
+library(gapminder)
+
+view(gapminder)
+```
+
+1.  In your github account, create a new repository called "lab1_practice", then clone it to your laptop
+
+In the new R project:
+
+1.  Create a new Quarto doc. If you like, set up the header for code folding. Set echo, message, and warning like we did in lab.
+2.  Attach tidyverse and the gapminder package (you might need to install gapminder)
+3.  For each year and continent, summarize the average per-capita GDP across all countries in the continent. hint: don't just average the country-level values - need to consider country populations!
+4.  Plot the continent_level GDP values in a scatter plot. Bonus, plot the country level values as well with a low alpha to fade the into the background.
+5.  Redo the scatter plot but this time, log transform the GDP data (either int he dataframe using 'mutate' or on the plot with 'scale_y"log10()')
+
+based on the plot, choose either regular or log transformed data, and use a linear regression to estimate annual change in per capita GDP **OR** log (per capita GDP) accounting for continent.
+
+-   Write a sentence or two describing the trends in the plots.
+-   Write a sentence or two to explain the coefficients in the linear model, including statistical sig.
+    -   Which continent is the "reference" continent? why mihgt that be?
+    -   What do the coeffecients on each continent represent? Do these make intuitive sense?
+-   does a linear model seem like a good way to approach these data? why or why not?
+
+when done, render your quarto doc, then stage, commit, and push back to Github.
+
+# 3
+
+```{r}
+percapgdp <- gapminder %>% 
+  group_by(continent, year) %>% 
+  summarize(percapgdp = mean (gdpPercap))
+
+percapgdp
+```
+
+# 4
+
+```{r}
+gdp_plot <- ggplot(data = percapgdp, aes(x = year, y = percapgdp, color = continent)) +
+  geom_point() +
+  labs(x = 'Year', y = 'Per Capita GDP', color = 'Continent', title = 'Continent-Level Per Capita GDP') +
+  theme_minimal()
+
+gdp_plot
+```
+
+# 5
+
+```{r}
+gdp_plot_log <- ggplot(data = percapgdp, aes(x = year, y = percapgdp, color = continent)) +
+  geom_point() +
+  labs(x = 'Year', y = 'Per Capita GDP', color = 'Continent', title = 'Continent-Level Per Capita GDP') +
+  scale_y_log10() +
+  theme_minimal()
+
+gdp_plot_log
+```
+
+# 6
+
+```{r}
+gdp_plot_lm <- ggplot(data = percapgdp, aes(x = year, y = percapgdp, color = continent)) +
+  geom_point() +
+  labs(x = 'Year', y = 'Per Capita GDP', color = 'Continent', title = 'Continent-Level Per Capita GDP') +
+  geom_smooth(method = lm, se = FALSE) +
+  theme_minimal()
+
+gdp_plot_lm
+```
+
+```{r}
+linear_model <- lm((percapgdp) ~ continent, data = percapgdp)
+
+summary(linear_model)
+```
+
+1.  The mean per capita GDPs are increasing for all of the continents across from 1952-2007. Oceania maintained the highest per capita GDP.
+2.  The coefficients are explaining the statistical significance compared to the per capita GDP of Africa. For every change in x, the y value changes by the value in est sd.
+3. Africa, becuase it is in alphabetical order.
+4. The coefficients represent the slope of the lines.
+5. Yes, depending on the questions you are asking. This gives us a model to explain global scale per capita GDP, but does not have much granularity.We did not test the assumptions for linearity.
